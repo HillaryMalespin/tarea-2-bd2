@@ -90,3 +90,21 @@ WHERE CustomerID = 1;
 ```
 > El valor regresará al original.
 > Esto demuestra que Session B leyó un dato no confirmado que luego fue revertido.
+
+## Referencias
+
+> Microsoft. (2024). SET TRANSACTION ISOLATION LEVEL (Transact-SQL).
+> 
+> — https://learn.microsoft.com/en-us/sql/t-sql/statements/set-transaction-isolation-level-transact-sql
+> 
+> SQL Shack. (2023). Dirty Reads and the Read Uncommitted Isolation Level.
+> 
+> — https://www.sqlshack.com/dirty-reads-and-the-read-uncommitted-isolation-level/
+> 
+> Anton Dev Tips. (2022). Complete Guide to Transaction Isolation Levels in SQL.
+> 
+> — https://antondevtips.com/blog/complete-guide-to-transaction-isolation-levels-in-sql
+> 
+> Understanding Isolation Level by Example (Read Uncommitted)
+> 
+> — https://youtu.be/9ZyxJbPlw-E?si=I9R7DsXhzBSjQhel
