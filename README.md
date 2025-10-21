@@ -91,6 +91,87 @@ WHERE CustomerID = 1;
 > El valor regresará al original.
 > Esto demuestra que Session B leyó un dato no confirmado que luego fue revertido.
 
+---
+
+## 2. Nivel de aislamiento: Read Committed
+
+### Definición
+
+`READ COMMITTED` es el **nivel de aislamiento predeterminado** en SQL Server.  
+Solo permite leer **datos confirmados (committed)**, bloqueando temporalmente las filas que están siendo modificadas por otra transacción.  
+Evita las **lecturas sucias**, aunque aún pueden ocurrir **lecturas no repetibles** o **fantasmas**.
+
+### Riesgos
+
+-  No se permiten lecturas sucias.  
+-  Puede haber **lecturas no repetibles** (el mismo registro puede cambiar entre lecturas).  
+-  Puede haber **lecturas fantasmas** (nuevas filas pueden aparecer en consultas repetidas).
+
+### Uso recomendado
+
+Ideal para **sistemas transaccionales comunes**, donde se busca un equilibrio entre **rendimiento y consistencia**.  
+Es el nivel predeterminado de SQL Server y uno de los más utilizados en entornos de producción.
+
+---
+
+### Paso a paso
+
+#### 1. Preparación
+
+1.1 Abre **SQL Server Management Studio (SSMS)**.  
+1.2 Conéctate al servidor con la base de datos **WorldWideImporters**.  
+1.3 Crea **dos ventanas de consulta**:  
+   - **Session A** → para modificar datos.  
+   - **Session B** → para consultar datos en paralelo.
+
+---
+
+#### 2. Configuración inicial
+
+Ejecuta en **ambas sesiones**:
+
+```sql
+USE WorldWideImporters;
+GO
+DBCC USEROPTIONS;
+GO
+```
+Esto mostrará el nivel de aislamiento actual.
+
+3. Ejecución del escenario
+**Sesión A**
+Ejecuta la siguiente transacción:
+```sql
+BEGIN TRAN;
+UPDATE Sales.Customers
+SET CustomerName = 'Cliente Temporal RC'
+WHERE CustomerID = 2;
+```
+> Mantener la transaccion abierta (sin ejecutar COMMIT ni ROLLBACK).
+> Esto simula una operación que aún no ha sido confirmada.
+
+**Sesión B**
+Ejecuta la siguiente transacción:
+```sql
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+SELECT CustomerID, CustomerName
+FROM Sales.Customers
+WHERE CustomerID = 2;
+```
+> En esta sesión, la consulta no se ejecutará inmediatamente.
+> SQL Server bloqueará la lectura hasta que la transacción en Session A sea confirmada o revertida, garantizando que solo se lean datos confirmados.
+
+4. Confirmación del comportamiento
+En **Session A**, ejecuta:
+```sql
+ROLLBACK TRAN;
+-- o, alternativamente:
+-- COMMIT TRAN;
+```
+> Una vez que se ejecuta este comando, la Session B finalmente mostrará el valor original del registro.
+> Esto demuestra que READ COMMITTED evita las lecturas sucias, ya que no permite acceder a datos no confirmados.
+
 ## Referencias
 
 > Microsoft. (2024). SET TRANSACTION ISOLATION LEVEL (Transact-SQL).
