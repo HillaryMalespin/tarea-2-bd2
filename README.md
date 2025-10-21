@@ -34,4 +34,59 @@ Esto puede provocar lecturas sucias (*dirty reads*).
 Se usa principalmente para **consultas de solo lectura o reportes rápidos**, donde la precisión absoluta no es crítica, pero la velocidad sí lo es.
 
 ### Paso a paso:
+1. Preparación:
+  1.1 Abre **SQL Server Management Studio (SSMS)**.  
+  1.2  Conéctate al servidor donde tengas instalada la base de datos **WorldWideImporters**.  
+  1.3 Abre **dos ventanas de consulta**:  
+     - **Session A**, para modificar datos.  
+     - **Session B**, para leer datos simultáneamente.
+  
+2. Configuración inicial
+Ejecuta lo siguiente en **ambas sesiones**:
 
+```sql
+USE WorldWideImporters;
+GO
+DBCC USEROPTIONS;
+GO
+```
+
+Esto mostrará el nivel de aislamiento actual, que por defecto suele ser READ COMMITTED.
+
+3. Ejecución del escenario
+**Sesión A**
+Ejecuta la siguiente transacción:
+```sql
+BEGIN TRAN;
+UPDATE Sales.Customers
+SET CustomerName = 'Cliente Temporal'
+WHERE CustomerID = 1;
+```
+> No confirmes la transacción (no ejecutes COMMIT ni ROLLBACK).
+> Mantén esta sesión abierta para simular una modificación pendiente.
+
+**Sesión B**
+Ejecuta en una segunda ventana:
+```sql
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SELECT CustomerID, CustomerName
+FROM Sales.Customers
+WHERE CustomerID = 1;
+```
+> En esta sesión verás el nombre "Cliente Temporal", aunque la transacción en la otra sesión no ha sido confirmada.
+> Esto evidencia el fenómeno de lectura sucia (dirty read).
+
+4. Verificación de lo que pasó
+
+En **Session A**, ejecuta:
+```sql
+ROLLBACK TRAN;
+```
+Después, vuelve a consultar desde **Session B**:
+```sql
+SELECT CustomerID, CustomerName
+FROM Sales.Customers
+WHERE CustomerID = 1;
+```
+> El valor regresará al original.
+> Esto demuestra que Session B leyó un dato no confirmado que luego fue revertido.
