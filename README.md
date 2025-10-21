@@ -121,8 +121,8 @@ Es el nivel predeterminado de SQL Server y uno de los más utilizados en entorno
 1.1 Abre **SQL Server Management Studio (SSMS)**.  
 1.2 Conéctate al servidor con la base de datos **WorldWideImporters**.  
 1.3 Crea **dos ventanas de consulta**:  
-   - **Session A** → para modificar datos.  
-   - **Session B** → para consultar datos en paralelo.
+   - **Session A**, para modificar datos.  
+   - **Session B**, para consultar datos en paralelo.
 
 ---
 
