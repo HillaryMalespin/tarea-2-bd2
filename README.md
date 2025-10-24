@@ -172,6 +172,93 @@ ROLLBACK TRAN;
 > Una vez que se ejecuta este comando, la Session B finalmente mostrará el valor original del registro.
 > Esto demuestra que READ COMMITTED evita las lecturas sucias, ya que no permite acceder a datos no confirmados.
 
+---
+
+## 3. Nivel de aislamiento: Repeatable read
+
+### Definición
+
+Este nivel evita que otros usuarios modifiquen las filas que una transacción ya ha leído hasta que la transacción finalice.
+Sin embargo, sí permite la lectura de nuevas filas que cumplen una condición después de que la transacción haya iniciado.
+
+### Riesgos
+
+-  Permite lecturas fantasma.
+-  Usa bastantes bloqueos.
+
+### Uso recomendado
+
+Cuando se ocupa garantizar que los valores leídos no cambien durante la transacción.
+
+---
+
+### Paso a paso
+
+1.1 Abrir **SQL Server Management Studio (SSMS)**.  
+1.2 Entrar al directorio Repeatable Read de este repositorio.  
+1.3 Ejecutar las transacciones contenidas en los archivos Session A.sql y
+Session B.sql guiándose con los comentarios proporcionados.  
+
+---
+
+
+## 4. Nivel de aislamiento: Serializable
+
+### Definición
+
+Es el nivel más estricto de aislamiento estándar. La transacción se comporta como si se ejecutara
+de forma completamente secuencial con respecto a las demás. Evita modificaciones y también la
+inserción de nuevas filas que cumplan las condiciones de búsqueda.
+
+### Riesgos
+
+-  Usa bastantes bloqueos.
+-  Puede llevar a una ejecución más lenta de las consultas.
+
+### Uso recomendado
+
+Cuando la consistencia total de los datos es más importante que el rendimiento. Es ideal para procesos críticos.
+
+---
+
+### Paso a paso
+
+1.1 Abrir **SQL Server Management Studio (SSMS)**.  
+1.2 Entrar al directorio Serializable de este repositorio.  
+1.3 Ejecutar las transacciones contenidas en los archivos Session A.sql y
+Session B.sql guiándose con los comentarios proporcionados.  
+
+---
+
+
+## 5. Nivel de aislamiento: Snapshot
+
+### Definición
+
+Cada transacción recibe su propia copia de los datos. Los cambios hechos dentro de una transacción se ven reflejados dentro
+de ella, pero no los cambios hechos de manera externa.
+
+### Riesgos
+
+-  Se puede perder la información modificada en transacciones rechazadas por generar conflictos de cambios.
+
+### Uso recomendado
+
+Transacciones que necesiten una cantidad pequeña de filas para sus operaciones o que no suelan hacer modificaciones.
+
+---
+
+### Paso a paso
+
+1.1 Abrir **SQL Server Management Studio (SSMS)**.  
+1.2 Conectarse a la base de datos de su preferencia.  
+1.3 Abrir los archivos de prueba ubicados en el directorio Snapshot de este repositorio.  
+1.4 Ejecutar el archivo Setup.sql.  
+1.5 Ejecutar los ejemplos contenidos en los archivos Session A.sql y Session B.sql en el orden indicado
+en los comentarios.  
+
+---
+
 ## Referencias
 
 > Microsoft. (2024). SET TRANSACTION ISOLATION LEVEL (Transact-SQL).
