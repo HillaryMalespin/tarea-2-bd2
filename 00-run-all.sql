@@ -2,9 +2,9 @@
 =========================================================
   Ejemplo: Nivel de aislamiento READ UNCOMMITTED
   Base de datos: WorldWideImporters
-  DescripciÛn:
-    Demuestra cÛmo el nivel READ UNCOMMITTED permite
-    leer datos que a˙n no han sido confirmados (dirty reads).
+  DescripciÔøΩn:
+    Demuestra cÔøΩmo el nivel READ UNCOMMITTED permite
+    leer datos que aÔøΩn no han sido confirmados (dirty reads).
 =========================================================
 */
 
@@ -18,27 +18,27 @@ GO
 
 /*
 ---------------------------------------------------------
-  SIMULACI”N DE CONCURRENCIA
+  SIMULACIÔøΩN DE CONCURRENCIA
   Tendremos dos sesiones (Session A y Session B):
-  - Session A realiza una actualizaciÛn sin confirmar (BEGIN TRAN)
+  - Session A realiza una actualizaciÔøΩn sin confirmar (BEGIN TRAN)
   - Session B intenta leer el mismo registro usando READ UNCOMMITTED
 ---------------------------------------------------------
 */
 
 /* ===================== SESSION A ===================== */
--- Simula una transacciÛn que modifica datos sin confirmar
+-- Simula una transacciÔøΩn que modifica datos sin confirmar
 BEGIN TRAN;
 
 UPDATE Sales.Customers
 SET CustomerName = 'Cliente Temporal'
 WHERE CustomerID = 1;
 
--- No se hace COMMIT todavÌa
--- Se deja la transacciÛn abierta para simular un cambio no confirmado
+-- No se hace COMMIT todavÔøΩa
+-- Se deja la transacciÔøΩn abierta para simular un cambio no confirmado
 -- (Se mantiene esta ventana abierta)
 
 ---------------------------------------------------------
--- Mientras tanto, en otra sesiÛn:
+-- Mientras tanto, en otra sesiÔøΩn:
 ---------------------------------------------------------
 
 /* ===================== SESSION B ===================== */
@@ -49,8 +49,8 @@ SELECT CustomerID, CustomerName
 FROM Sales.Customers
 WHERE CustomerID = 1;
 
--- AquÌ se ver· el valor 'Cliente Temporal',
--- aunque la transacciÛn de Session A a˙n no se ha confirmado.
+-- AquÔøΩ se verÔøΩ el valor 'Cliente Temporal',
+-- aunque la transacciÔøΩn de Session A aÔøΩn no se ha confirmado.
 -- Esto se conoce como "Dirty Read".
 
 /* ===================== SESSION A ===================== */
@@ -73,7 +73,7 @@ WHERE CustomerID = 1;
 =========================================================
   Ejemplo: Nivel de aislamiento READ COMMITTED
   Base de datos: WorldWideImporters
-  DescripciÛn:
+  DescripciÔøΩn:
     
 =========================================================
 */
@@ -87,8 +87,8 @@ GO
 
 /*
 ---------------------------------------------------------
-  SIMULACI”N DE CONCURRENCIA
-  Se utilizar·n dos sesiones (Session A y Session B)
+  SIMULACIÔøΩN DE CONCURRENCIA
+  Se utilizarÔøΩn dos sesiones (Session A y Session B)
   para demostrar el comportamiento del nivel READ COMMITTED.
 
   - Session A: modifica un registro sin confirmar (BEGIN TRAN)
@@ -105,9 +105,9 @@ UPDATE Sales.Customers
 SET CustomerName = 'Cliente Temporal RC'
 WHERE CustomerID = 2;
 
--- No COMMIT ni ROLLBACK todavÌa.
--- Dejamos la transacciÛn abierta para simular un cambio pendiente.
--- (Ventana abierta y sin cerrar la transacciÛn)
+-- No COMMIT ni ROLLBACK todavÔøΩa.
+-- Dejamos la transacciÔøΩn abierta para simular un cambio pendiente.
+-- (Ventana abierta y sin cerrar la transacciÔøΩn)
 ---------------------------------------------------------
 
 
@@ -117,33 +117,33 @@ WHERE CustomerID = 2;
 -- Configuramos el nivel de aislamiento READ COMMITTED
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
--- Intentamos leer el mismo registro que Session A modificÛ
+-- Intentamos leer el mismo registro que Session A modificÔøΩ
 SELECT CustomerID, CustomerName
 FROM Sales.Customers
 WHERE CustomerID = 2;
 
 -- Comportamiento esperado:
--- La consulta quedar· bloqueada (en espera)
--- hasta que Session A confirme (COMMIT) o revierta (ROLLBACK) su transacciÛn.
+-- La consulta quedarÔøΩ bloqueada (en espera)
+-- hasta que Session A confirme (COMMIT) o revierta (ROLLBACK) su transacciÔøΩn.
 ---------------------------------------------------------
 
 
 ---------------------------------------------------------
--- =============== SESSION A (ContinuaciÛn) =============
+-- =============== SESSION A (ContinuaciÔøΩn) =============
 ---------------------------------------------------------
--- Una vez que confirmamos o revertimos la transacciÛn,
--- la Session B podr· continuar su ejecuciÛn.
+-- Una vez que confirmamos o revertimos la transacciÔøΩn,
+-- la Session B podrÔøΩ continuar su ejecuciÔøΩn.
 ROLLBACK TRAN;
 -- o, alternativamente:
 -- COMMIT TRAN;
 ---------------------------------------------------------
 
 
--- Mientras Session A mantenÌa la transacciÛn abierta,
+-- Mientras Session A mantenÔøΩa la transacciÔøΩn abierta,
 -- Session B no pudo leer el registro (lectura bloqueada).
 
 -- Al ejecutar ROLLBACK o COMMIT en Session A,
--- Session B finalmente accediÛ al valor confirmado.
+-- Session B finalmente accediÔøΩ al valor confirmado.
 ------------------------------------------------------------
 --------------------FIN-------------------------------------
 ------------------------------------------------------------
@@ -151,18 +151,58 @@ ROLLBACK TRAN;
 
 /*
 =========================================================
-  Ejemplo: Nivel de aislamiento Repeatable read 
-  Base de datos: 
-  DescripciÛn:
-    
+  Ejemplo: Nivel de aislamiento REPEATABLE READ
+  Base de datos: WorldWideImporters
+  Descripci√≥n:
+    Demuestra c√≥mo REPEATABLE READ evita lecturas no repetibles
+    bloqueando las filas le√≠das, pero permite lecturas fantasmas.
 =========================================================
 */
+
+USE WideWorldImporters;
+GO
+
+-- Mostrar nivel actual
+DBCC USEROPTIONS;
+GO
+
+/* ===================== SESSION A ===================== */
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN TRAN;
+
+SELECT CustomerID, CustomerName
+FROM Sales.Customers
+WHERE CustomerID = 3;
+
+-- Mantener transacci√≥n abierta para demostrar bloqueo
+-- NO EJECUTAR COMMIT TODAV√çA
+
+/* ===================== SESSION B ===================== */
+-- Esta actualizaci√≥n se BLOQUEAR√Å hasta que Session A haga COMMIT
+UPDATE Sales.Customers 
+SET CustomerName = 'Cliente Modificado RR'
+WHERE CustomerID = 3;
+
+/* ===================== SESSION A ===================== */
+-- Lectura repetida - el valor ser√° consistente
+SELECT CustomerID, CustomerName
+FROM Sales.Customers
+WHERE CustomerID = 3;
+
+COMMIT TRAN;  -- Ahora Session B puede ejecutarse
+
+/* ===================== SESSION B ===================== */
+-- Verificar que la actualizaci√≥n se realiz√≥
+SELECT CustomerID, CustomerName
+FROM Sales.Customers
+WHERE CustomerID = 3;
+------------------------------------------------------------
 
 /*
 =========================================================
   Ejemplo: Nivel de aislamiento Serializable 
   Base de datos: 
-  DescripciÛn:
+  DescripciÔøΩn:
     
 =========================================================
 */
@@ -171,7 +211,7 @@ ROLLBACK TRAN;
 =========================================================
   Ejemplo: Nivel de aislamiento Snapshot
   Base de datos: 
-  DescripciÛn:
+  DescripciÔøΩn:
     
 =========================================================
 */
