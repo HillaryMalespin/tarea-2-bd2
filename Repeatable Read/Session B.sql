@@ -6,10 +6,7 @@ GO
 DBCC USEROPTIONS;
 GO
 
--- Intentamos actualizar el mismo registro que Session A está leyendo
+-- Intentamos ACTUALIZAR el mismo registro que Session A está leyendo
 UPDATE Sales.Customers 
-SET CustomerName = 'Intento de Cambio'
-WHERE CustomerID = 3;
-
--- Esta consulta se BLOQUEARÁ y esperará
--- porque REPEATABLE READ bloquea las filas leídas
+SET CustomerName = 'Modificado - ' + CONVERT(VARCHAR, GETDATE(), 114)
+WHERE CustomerID = 2;
